@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>¿Quieres ser mi novia?</title>
+  <meta name="description" content="Página romántica para pedir que sea tu novia – HTML + CSS (sin JS)" />
+  <style>
+    /* ====== Tipografía y Reset suave ====== */
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;800&display=swap');
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: 'Poppins', system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, 'Helvetica Neue', Arial, sans-serif;
+      background: radial-gradient(1200px 600px at 80% -10%, #ffd6e7 20%, transparent 60%),
+                  radial-gradient(1000px 500px at 10% -30%, #ffe9f2 20%, transparent 60%),
+                  linear-gradient(180deg, #fff7fb 0%, #ffe5ef 100%);
+      color: #2d2a2e;
+      overflow-x: hidden;
+    }
+
+    /* ====== Corazones flotantes (decorativo) ====== */
+    .hearts {
+      position: fixed; inset: 0; pointer-events: none; overflow: hidden;
+    }
+    .heart {
+      position: absolute; bottom: -10vh; opacity: .55; filter: drop-shadow(0 2px 6px rgba(0,0,0,.15));
+      width: clamp(14px, 2vw, 24px); height: clamp(14px, 2vw, 24px);
+      background:
+        radial-gradient(circle at 30% 35%, #fff8 0 30%, #0000 31%),
+        radial-gradient(circle at 70% 35%, #fff6 0 30%, #0000 31%),
+        radial-gradient(circle at 50% 65%, #0002 0 28%, #0000 29%),
+        conic-gradient(from 45deg at 50% 65%, #ff5d8f, #ff85a1 50%, #ff5d8f 100%);
+      transform: rotate(45deg);
+      border-radius: 4px;
+      animation: rise var(--dur) linear infinite;
+      left: var(--x);
+    }
+    .heart::before,
+    .heart::after {
+      content: ""; position: absolute; inset: -40% auto auto -40%;
+      width: 100%; height: 100%; border-radius: 50%;
+      background: inherit;
+    }
+    .heart::after { inset: -40% -40% auto auto; }
+    @keyframes rise {
+      from { transform: translateY(0) rotate(45deg) scale(1); }
+      to   { transform: translateY(-120vh) rotate(45deg) scale(1.1); }
+    }
+
+    /* ====== Contenedor principal ====== */
+    .wrap {
+      min-height: 100dvh; display: grid; place-items: center; padding: 24px; position: relative;
+    }
+    .card {
+      width: min(960px, 92vw);
+      background: rgba(255,255,255, .8);
+      backdrop-filter: blur(6px);
+      border: 1px solid rgba(255, 122, 162, .25);
+      border-radius: 24px;
+      box-shadow: 0 10px 30px rgba(255, 92, 143, .2), 0 2px 10px rgba(0,0,0,.04);
+      padding: clamp(20px, 4vw, 44px);
+      position: relative;
+    }
+
+    /* ====== Encabezado ====== */
+    .title {
+      text-align: center; margin: 0 0 8px; line-height: 1.1;
+      font-weight: 800; letter-spacing: -0.02em;
+      font-size: clamp(28px, 4.8vw, 64px);
+      background: linear-gradient(180deg, #ff3e7f, #b8325e 70%);
+      -webkit-background-clip: text; background-clip: text; color: transparent;
+    }
+    .subtitle {
+      text-align: center; margin: 0 0 28px; font-weight: 400; opacity: .85;
+      font-size: clamp(14px, 2.2vw, 18px);
+    }
+
+    /* ====== Línea de fotos (placeholders que puedes cambiar) ====== */
+    .photos {
+      display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin: 22px 0 28px;
+    }
+    .ph {
+      aspect-ratio: 1/1; border-radius: 16px; overflow: hidden; position: relative;
+      background: linear-gradient(135deg, #fff, #ffe4ee);
+      border: 1px solid rgba(255, 122, 162, .25);
+    }
+    .ph span {
+      position: absolute; inset: 0; display: grid; place-items: center; font-size: 12px; opacity: .6;
+    }
+    .ph img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+    @media (max-width: 780px){ .photos{ grid-template-columns: repeat(3, 1fr);} }
+
+    /* ====== Botones (CSS-only con radios ocultos) ====== */
+    .choices { display: grid; place-items: center; gap: 14px; margin: 18px 0 10px; }
+    .choices small { opacity: .75; }
+    input[type="radio"]{ position: absolute; inset: -1px; opacity: 0; pointer-events: none; }
+
+    .btns { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: center; }
+    .btn {
+      --bg:#ff4e88; --bg2:#ff7aa8; --txt:#fff;
+      appearance: none; border: 0; padding: 14px 22px; font-weight: 700;
+      border-radius: 14px; cursor: pointer; text-decoration: none; user-select: none;
+      background: linear-gradient(180deg, var(--bg), var(--bg2)); color: var(--txt);
+      box-shadow: 0 6px 14px rgba(255, 90, 140, .28), inset 0 1px 0 rgba(255,255,255,.35);
+      transition: transform .12s ease, box-shadow .2s ease;
+    }
+    .btn:active { transform: translateY(1px) scale(.99); box-shadow: 0 4px 10px rgba(255, 90, 140, .24); }
+    .btn.outline{ background: #fff; color: #ff3e7f; border: 2px solid #ff8fb3; box-shadow: none; }
+
+    /* Botón "No" que huye al pasar el mouse */
+    label[for="no"]{ position: relative; }
+    label[for="no"]:hover{ animation: dodge .8s ease both; }
+    @keyframes dodge {
+      20% { transform: translate(6px, -2px); }
+      40% { transform: translate(-20px, 4px); }
+      60% { transform: translate(30px, -6px); }
+      80% { transform: translate(-36px, 10px); }
+      100%{ transform: translate(0,0); }
+    }
+
+    /* ====== Secciones según respuesta ====== */
+    .state { display: none; margin-top: 18px; }
+
+    /* Mostrar estado por :checked */
+    #si:checked ~ .card .state-yes { display: block; }
+    #no:checked ~ .card .state-no  { display: block; }
+
+    /* Mensaje aceptado */
+    .yes-box{
+      display: grid; place-items: center; text-align: center; gap: 16px; padding: 18px;
+      border-radius: 18px; background: linear-gradient(180deg, #fff, #fff5f8);
+      border: 1px dashed #ff9dbd;
+    }
+    .yes-title{ font-size: clamp(22px, 4vw, 36px); margin: 0; color: #b8325e; }
+    .yes-note{ margin: 0; opacity: .85; }
+
+    /* Mensaje rechazado (cariñoso) */
+    .no-box{
+      display: grid; gap: 10px; text-align: center; padding: 18px; border-radius: 16px;
+      background: #fff; border: 1px solid #ffd3e1;
+    }
+    .no-title{ margin: 0; color:#7a2f45; }
+    .no-note{ margin: 0; opacity: .8; }
+
+    /* ====== Lista de razones ====== */
+    .reasons{
+      display: grid; gap: 10px; margin-top: 22px; background: #ffffffc7;
+      border: 1px solid rgba(255, 122, 162, .22); border-radius: 18px; padding: 16px 18px;
+    }
+    .reasons h3{ margin: 0 0 6px; font-size: 18px; color:#b8325e; }
+    .reasons ul{ margin: 0; padding-left: 18px; display: grid; gap: 6px; }
+
+    /* ====== Firma ====== */
+    .signature{ margin-top: 18px; text-align: right; opacity: .8; font-size: 14px; }
+
+    /* ====== Pie de página ====== */
+    footer{ text-align: center; font-size: 12px; opacity: .7; padding: 20px 0; }
+
+    /* ====== Etiquetas accesibles ====== */
+    .sr-only{ position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+  </style>
+</head>
+<body>
+
+  <!-- Corazones decorativos (12 variaciones) -->
+  <div class="hearts" aria-hidden="true">
+    <div class="heart" style="--x:5vw; --dur:12s"></div>
+    <div class="heart" style="--x:12vw; --dur:10s"></div>
+    <div class="heart" style="--x:20vw; --dur:14s"></div>
+    <div class="heart" style="--x:28vw; --dur:11s"></div>
+    <div class="heart" style="--x:36vw; --dur:13s"></div>
+    <div class="heart" style="--x:44vw; --dur:9s"></div>
+    <div class="heart" style="--x:54vw; --dur:12.5s"></div>
+    <div class="heart" style="--x:62vw; --dur:10.5s"></div>
+    <div class="heart" style="--x:70vw; --dur:15s"></div>
+    <div class="heart" style="--x:78vw; --dur:11.2s"></div>
+    <div class="heart" style="--x:86vw; --dur:13.7s"></div>
+    <div class="heart" style="--x:92vw; --dur:9.8s"></div>
+  </div>
+
+  <div class="wrap">
+    <!-- Radios ocultos para controlar los estados -->
+    <input type="radio" name="respuesta" id="si" />
+    <input type="radio" name="respuesta" id="no" />
+
+    <section class="card" role="group" aria-labelledby="t">
+      <h1 id="t" class="title">¿Quieres ser mi novia?</h1>
+      <p class="subtitle">Prometo cuidarte, hacerte reír y acompañarte en todo lo que venga. <br> ¿Me das el honor de ser tu persona favorita?</p>
+
+      <!-- Reemplaza estas imágenes por fotos de ustedes (mismo tamaño recomendado) -->
+      <div class="photos" aria-label="Nuestros momentos">
+        <figure class="ph"><span>Foto 1</span></figure>
+        <figure class="ph"><span>Foto 2</span></figure>
+        <figure class="ph"><span>Foto 3</span></figure>
+        <figure class="ph"><span>Foto 4</span></figure>
+        <figure class="ph"><span>Foto 5</span></figure>
+        <figure class="ph"><span>Foto 6</span></figure>
+      </div>
+
+      <div class="choices">
+        <div class="btns" aria-label="Elige tu respuesta">
+          <label class="btn" for="si" role="button" aria-controls="aceptado" aria-expanded="false">Sí, obvio ❤️</label>
+          <label class="btn outline" for="no" role="button" aria-controls="rechazado" aria-expanded="false">Mmm… no</label>
+        </div>
+        <small>Tip: si apuntas al “No”… podría escaparse 😅</small>
+      </div>
+
+      <!-- Estado SÍ -->
+      <div id="aceptado" class="state state-yes" aria-live="polite">
+        <div class="yes-box">
+          <h2 class="yes-title">¡Sabía que dirías que sí! 💖</h2>
+          <p class="yes-note">A partir de hoy, <strong>tú y yo</strong> somos nosotros. Te debo una cita con helado, películas y muchos abrazos.</p>
+          <p class="yes-note">Guarda esta página como recuerdo. Es nuestro inicio oficial. ✨</p>
+        </div>
+        <div class="reasons">
+          <h3>Promesas (para que conste):</h3>
+          <ul>
+            <li>Escucharte de verdad, incluso cuando hablemos en silencios.</li>
+            <li>Hacerte reír hasta que te duela el estómago.</li>
+            <li>Respetar tus tiempos, tus sueños y tus límites.</li>
+            <li>Celebrar tus logros y acompañarte en los no tan buenos días.</li>
+            <li>Recordarte todos los días lo increíble que eres.</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Estado NO (cariñoso) -->
+      <div id="rechazado" class="state state-no" aria-live="polite">
+        <div class="no-box">
+          <h3 class="no-title">Está bien, lo respeto 🥺</h3>
+          <p class="no-note">Gracias por leerme. Igual me quedo con la suerte de haberte conocido. Si algún día cambias de opinión, esta página seguirá aquí, paciente como yo. 💌</p>
+        </div>
+      </div>
+
+      <p class="signature">Con cariño, <em>tu futuro novio (espero)</em> ✍️</p>
+    </section>
+
+    <footer>
+      Hecho con amor y CSS • Personalízalo con tus fotos y palabras.
+    </footer>
+  </div>
+</body>
+</html>
